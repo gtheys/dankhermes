@@ -51,7 +51,7 @@ curl http://127.0.0.1:8642/health
 Clone this repository and copy to your DMS plugins directory:
 
 ```bash
-git clone https://github.com/hkl/dankhermes.git
+git clone https://github.com/huangkaile22-prog/dankhermes.git
 cp -r dankhermes ~/.config/DankMaterialShell/plugins/dankHermes
 ```
 

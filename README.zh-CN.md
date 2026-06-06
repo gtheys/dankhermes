@@ -51,7 +51,7 @@ curl http://127.0.0.1:8642/health
 克隆本仓库并复制到 DMS 插件目录：
 
 ```bash
-git clone https://github.com/hkl/dankhermes.git
+git clone https://github.com/huangkaile22-prog/dankhermes.git
 cp -r dankhermes ~/.config/DankMaterialShell/plugins/dankHermes
 ```
 

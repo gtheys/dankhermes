@@ -1,0 +1,15 @@
+{
+    "id": "dankHermes",
+    "name": "Dank Hermes",
+    "description": "AI chat sidebar powered by local Hermes agent",
+    "version": "1.0.0",
+    "license": "MIT",
+    "author": "hkl",
+    "icon": "smart_toy",
+    "type": "daemon",
+    "capabilities": ["ai-chat"],
+    "component": "./DankHermes.qml",
+    "settings": "./DankHermesSettings.qml",
+    "requires_dms": ">=1.4.0",
+    "permissions": ["settings_read", "settings_write"]
+}

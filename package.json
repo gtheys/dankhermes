@@ -1,0 +1,7 @@
+{
+  "name": "dankhermes",
+  "private": true,
+  "scripts": {
+    "test": "$(command -v qmllint || echo /usr/lib/qt6/bin/qmllint) ChatBubble.qml ChatInput.qml ChatView.qml DankHermes.qml DankHermesSettings.qml HermesService.qml"
+  }
+}

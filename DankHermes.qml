@@ -39,6 +39,10 @@ PluginComponent {
     // (its id is not visible outside PanelWindow, that was the old crash).
     onSlideoutVisibleChanged: {
         if (slideoutVisible) {
+            // Open on the focused monitor, not screens[0] (which may be a
+            // lid-closed, inactive laptop panel). Not a binding: the focused
+            // screen is resolved at open time.
+            slideout.screen = parentScreen || CompositorService.getFocusedScreen();
             slideout.visible = true;
             hermesService.testConnection();
         }

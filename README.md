@@ -48,6 +48,21 @@ curl http://127.0.0.1:8642/health
 
 ### 2. Install the Plugin
 
+## Remote Hermes Server
+
+The plugin can connect to a Hermes agent on another machine (e.g. over Tailscale):
+
+1. Open DMS Settings → Plugins → dankHermes
+2. Set **API URL** to the remote address, e.g. `https://hermes.your-tailnet.ts.net:8443` (HTTPS supported; trailing slashes are handled)
+3. Set **API Key** to the remote server's `API_SERVER_KEY`
+
+The dot next to "Hermes AI" in the panel header shows the live connection state (green = connected, red = unreachable). You can also check it from scripts:
+
+```bash
+dms ipc call hermes status   # includes apiUrl and connectionStatus
+```
+
+
 Clone this repository and copy to your DMS plugins directory:
 
 ```bash

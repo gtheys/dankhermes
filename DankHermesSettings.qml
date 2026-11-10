@@ -17,7 +17,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: "连接到本地 Hermes 智能体。请确保 API 服务器已在 ~/.hermes/.env 中启用（API_SERVER_ENABLED=true）。"
+        text: "Connect to a local or remote Hermes agent. For a remote server, set the API URL to its address (HTTPS supported) and use that server's API key."
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
         wrapMode: Text.WordWrap
@@ -26,7 +26,7 @@ PluginSettings {
     StringSetting {
         settingKey: "apiUrl"
         label: "API 地址"
-        description: "Hermes API 服务器地址"
+        description: "Hermes API server address — local (http://127.0.0.1:8642) or remote (https://hermes.example.com)"
         placeholder: "http://127.0.0.1:8642"
         defaultValue: "http://127.0.0.1:8642"
     }
@@ -49,7 +49,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: "如需启用 API 服务器，请在 ~/.hermes/.env 中添加以下配置，然后运行 'hermes gateway restart' 重启："
+        text: "For a local Hermes gateway, enable its API server in ~/.hermes/.env and restart it with 'hermes gateway restart':"
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
         wrapMode: Text.WordWrap

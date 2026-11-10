@@ -25,12 +25,23 @@ PluginComponent {
             hermesService.apiKey = pluginService.loadPluginData("dankHermes", "apiKey", "dms-hermes-plugin-key");
             hermesService.model = pluginService.loadPluginData("dankHermes", "model", "hermes-agent");
         }
+        hermesService.testConnection();
     }
 
     function sendMessage(text) {
         if (!text || text.trim() === "")
             return;
         hermesService.sendMessage(text.trim());
+    }
+
+    // AIDEV-NOTE: slideOffset is bound to slideoutVisible (see PanelWindow) — the
+    // slide animation runs on its own; IPC handlers must NOT touch slideContainer
+    // (its id is not visible outside PanelWindow, that was the old crash).
+    onSlideoutVisibleChanged: {
+        if (slideoutVisible) {
+            slideout.visible = true;
+            hermesService.testConnection();
+        }
     }
 
     // --- Slideout (always right side) ---
@@ -113,6 +124,17 @@ PluginComponent {
                             color: Theme.surfaceText
                             anchors.verticalCenter: parent.verticalCenter
                         }
+
+                        // Connection status dot: green=connected, red=unreachable, grey=checking/unknown
+                        Rectangle {
+                            width: 8
+                            height: 8
+                            radius: 4
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: hermesService.connectionStatus === "connected" ? Theme.primary
+                                 : hermesService.connectionStatus === "unreachable" ? Theme.error
+                                 : Theme.surfaceVariantText
+                        }
                     }
 
                     Row {
@@ -178,14 +200,11 @@ PluginComponent {
     IpcHandler {
         function open(): string {
             root.slideoutVisible = true;
-            slideout.visible = true;
-            slideout.slideContainer.slideOffset = 0;
             return "HERMES_OPEN_SUCCESS";
         }
 
         function close(): string {
             root.slideoutVisible = false;
-            slideout.slideContainer.slideOffset = slideout.slideContainer.width;
             return "HERMES_CLOSE_SUCCESS";
         }
 
@@ -202,8 +221,6 @@ PluginComponent {
         function sendMessage(message: string): string {
             if (!message || message.trim() === "") return "HERMES_ERROR_EMPTY_MESSAGE";
             root.slideoutVisible = true;
-            slideout.visible = true;
-            slideout.slideContainer.slideOffset = 0;
             root.sendMessage(message);
             return "HERMES_MESSAGE_SENT";
         }
@@ -213,7 +230,9 @@ PluginComponent {
                 visible: root.slideoutVisible,
                 loading: hermesService.loading,
                 messageCount: hermesService.messages.length,
-                error: hermesService.error
+                error: hermesService.error,
+                apiUrl: hermesService.apiUrl,
+                connectionStatus: hermesService.connectionStatus
             });
         }
 

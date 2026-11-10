@@ -12,6 +12,31 @@ Item {
     property string model: "hermes-agent"
     property string sessionId: ""
 
+    // AIDEV-NOTE: unknown | connecting | connected | unreachable
+    property string connectionStatus: "unknown"
+
+    // Strip trailing slashes so remote URLs like "https://host/" don't produce "//v1/..."
+    function normalizedApiUrl() {
+        var url = root.apiUrl.trim();
+        while (url.endsWith("/"))
+            url = url.substring(0, url.length - 1);
+        return url;
+    }
+
+    function testConnection() {
+        connectionStatus = "connecting";
+        var curlCmd = "curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10" +
+            " '" + normalizedApiUrl() + "/health'" +
+            " -H 'Authorization: Bearer " + root.apiKey + "'";
+        var process = healthProcessComponent.createObject(root, {
+            command: ["sh", "-c", curlCmd]
+        });
+        if (process)
+            process.running = true;
+        else
+            connectionStatus = "unknown";
+    }
+
     // Conversation state
     property var messages: []
     property bool loading: false
@@ -58,7 +83,7 @@ Item {
         // Build curl command — $REQUEST_BODY comes from environment (double quotes for expansion)
         var sessionHeader = root.sessionId !== "" ? " -H 'X-Hermes-Session-Id: " + root.sessionId + "'" : "";
         var curlCmd = "curl -sS --connect-timeout 10 --max-time 120" +
-            " -X POST '" + root.apiUrl + "/v1/chat/completions'" +
+            " -X POST '" + normalizedApiUrl() + "/v1/chat/completions'" +
             " -H 'Content-Type: application/json'" +
             " -H 'Authorization: Bearer " + root.apiKey + "'" +
             sessionHeader +
@@ -95,7 +120,7 @@ Item {
 
         if (exitCode !== 0) {
             if (exitCode === 7) {
-                error = "无法连接 Hermes API。请在 ~/.hermes/.env 中启用 API_SERVER_ENABLED";
+                error = "Cannot reach Hermes API at " + normalizedApiUrl() + ". Check the apiUrl setting and that the Hermes API server is running.";
             } else if (exitCode === 28) {
                 error = "请求超时，Hermes 可能正在处理复杂任务";
             } else {
@@ -176,6 +201,27 @@ Item {
             }
         }
         loading = false;
+    }
+
+    Component {
+        id: healthProcessComponent
+
+        Process {
+            id: healthProc
+            property string outputText: ""
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    healthProc.outputText = text;
+                }
+            }
+
+            onExited: (exitCode) => {
+                var code = outputText.trim();
+                root.connectionStatus = (exitCode === 0 && code.charAt(0) === "2") ? "connected" : "unreachable";
+                destroy();
+            }
+        }
     }
 
     Component {

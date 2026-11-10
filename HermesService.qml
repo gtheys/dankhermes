@@ -15,6 +15,28 @@ Item {
     // AIDEV-NOTE: unknown | connecting | connected | unreachable
     property string connectionStatus: "unknown"
 
+    // AIDEV-NOTE: parsed GET /v1/capabilities body, fetched after a successful
+    // health check. Stays ({}) on older gateways without the endpoint —
+    // consumers must gate features via hasCapability(), never assume version.
+    property var capabilities: ({})
+    property string runtimeMode: ""
+    property string runtimeModel: ""
+
+    function hasCapability(name) {
+        return !!capabilities[name];
+    }
+
+    function fetchCapabilities() {
+        var curlCmd = "curl -sS --connect-timeout 5 --max-time 10" +
+            " '" + normalizedApiUrl() + "/v1/capabilities'" +
+            " -H 'Authorization: Bearer " + root.apiKey + "'";
+        var process = capabilitiesProcessComponent.createObject(root, {
+            command: ["sh", "-c", curlCmd]
+        });
+        if (process)
+            process.running = true;
+    }
+
     // Strip trailing slashes so remote URLs like "https://host/" don't produce "//v1/..."
     function normalizedApiUrl() {
         var url = root.apiUrl.trim();
@@ -219,6 +241,41 @@ Item {
             onExited: (exitCode) => {
                 var code = outputText.trim();
                 root.connectionStatus = (exitCode === 0 && code.charAt(0) === "2") ? "connected" : "unreachable";
+                if (root.connectionStatus === "connected")
+                    root.fetchCapabilities();
+                destroy();
+            }
+        }
+    }
+
+    Component {
+        id: capabilitiesProcessComponent
+
+        Process {
+            id: capProc
+            property string outputText: ""
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    capProc.outputText = text;
+                }
+            }
+
+            onExited: (exitCode) => {
+                // Best-effort: a 404 from an older gateway leaves capabilities
+                // at ({}), which hasCapability() reports as not advertised.
+                if (exitCode === 0) {
+                    try {
+                        var parsed = JSON.parse(outputText.trim());
+                        if (parsed && typeof parsed === "object") {
+                            root.capabilities = parsed;
+                            root.runtimeMode = parsed.runtime?.mode || "";
+                            root.runtimeModel = parsed.runtime?.model || "";
+                        }
+                    } catch (e) {
+                        console.warn("HermesService: capabilities parse failed:", e.toString());
+                    }
+                }
                 destroy();
             }
         }

@@ -139,6 +139,17 @@ PluginComponent {
                                  : hermesService.connectionStatus === "unreachable" ? Theme.error
                                  : Theme.surfaceVariantText
                         }
+
+                        // Remote gateway runtime (from /v1/capabilities), e.g. "server · gpt-5"
+                        StyledText {
+                            visible: hermesService.runtimeMode !== "" || hermesService.runtimeModel !== ""
+                            text: hermesService.runtimeMode !== "" && hermesService.runtimeModel !== ""
+                                ? hermesService.runtimeMode + " · " + hermesService.runtimeModel
+                                : hermesService.runtimeMode + hermesService.runtimeModel
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceVariantText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
 
                     Row {
